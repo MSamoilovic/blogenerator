@@ -7,7 +7,7 @@ class TextType(Enum):
     ITALIC = "_Italic text_"
     CODE = "`Code text`"
     LINK = "[anchor text](url)"
-    IMAGES = "![alt text](url)"
+    IMAGE = "![alt text](url)"
 
 
 class TextNode:

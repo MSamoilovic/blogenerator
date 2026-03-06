@@ -1,7 +1,7 @@
 import unittest
 
-from textnode import TextNode, TextType
-from inline import text_node_to_html_node
+from nodes.textnode import TextNode, TextType
+from markdown.inline import text_node_to_html_node
 
 
 class TestTextNodeToHtmlNode(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestTextNodeToHtmlNode(unittest.TestCase):
         self.assertEqual(html_node.props, {"href": "https://www.google.com"})
 
     def test_image(self):
-        node = TextNode("alt text", TextType.IMAGES, "https://example.com/img.png")
+        node = TextNode("alt text", TextType.IMAGE, "https://example.com/img.png")
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "img")
         self.assertEqual(html_node.value, "")

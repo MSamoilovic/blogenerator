@@ -1,7 +1,6 @@
-from textnode import TextNode, TextType
-
 def main():
-    new_node = TextNode("small value", TextType.ITALIC)
-    print(new_node)
+    pass
 
-main()
+
+if __name__ == "__main__":
+    main()

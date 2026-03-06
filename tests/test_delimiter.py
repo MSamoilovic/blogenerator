@@ -1,7 +1,7 @@
 import unittest
 
-from textnode import TextNode, TextType
-from delimiter import split_nodes_delimiter
+from nodes.textnode import TextNode, TextType
+from markdown.delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link
 
 
 class TestSplitNodesDelimiter(unittest.TestCase):
@@ -149,6 +149,115 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         node = TextNode("**no closing", TextType.TEXT)
         with self.assertRaises(Exception):
             split_nodes_delimiter([node], "**", TextType.BOLD)
+
+
+class TestSplitNodesImage(unittest.TestCase):
+
+    def test_single_image(self):
+        node = TextNode("text ![alt](https://img.com/a.png) end", TextType.TEXT)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [
+            TextNode("text ", TextType.TEXT),
+            TextNode("alt", TextType.IMAGE, "https://img.com/a.png"),
+            TextNode(" end", TextType.TEXT),
+        ])
+
+    def test_image_at_start(self):
+        node = TextNode("![alt](https://img.com/a.png) after", TextType.TEXT)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [
+            TextNode("alt", TextType.IMAGE, "https://img.com/a.png"),
+            TextNode(" after", TextType.TEXT),
+        ])
+
+    def test_image_at_end(self):
+        node = TextNode("before ![alt](https://img.com/a.png)", TextType.TEXT)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [
+            TextNode("before ", TextType.TEXT),
+            TextNode("alt", TextType.IMAGE, "https://img.com/a.png"),
+        ])
+
+    def test_multiple_images(self):
+        node = TextNode("![a](https://a.com/1.png) and ![b](https://b.com/2.png)", TextType.TEXT)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [
+            TextNode("a", TextType.IMAGE, "https://a.com/1.png"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("b", TextType.IMAGE, "https://b.com/2.png"),
+        ])
+
+    def test_no_images_passes_through(self):
+        node = TextNode("plain text no images", TextType.TEXT)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [node])
+
+    def test_non_text_node_passes_through(self):
+        node = TextNode("already bold", TextType.BOLD)
+        result = split_nodes_image([node])
+        self.assertEqual(result, [node])
+
+    def test_empty_list(self):
+        self.assertEqual(split_nodes_image([]), [])
+
+
+class TestSplitNodesLink(unittest.TestCase):
+
+    def test_single_link(self):
+        node = TextNode("text [boot dev](https://www.boot.dev) end", TextType.TEXT)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [
+            TextNode("text ", TextType.TEXT),
+            TextNode("boot dev", TextType.LINK, "https://www.boot.dev"),
+            TextNode(" end", TextType.TEXT),
+        ])
+
+    def test_link_at_start(self):
+        node = TextNode("[click](https://example.com) after", TextType.TEXT)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [
+            TextNode("click", TextType.LINK, "https://example.com"),
+            TextNode(" after", TextType.TEXT),
+        ])
+
+    def test_link_at_end(self):
+        node = TextNode("before [click](https://example.com)", TextType.TEXT)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [
+            TextNode("before ", TextType.TEXT),
+            TextNode("click", TextType.LINK, "https://example.com"),
+        ])
+
+    def test_multiple_links(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+        )
+        result = split_nodes_link([node])
+        self.assertEqual(result, [
+            TextNode("This is text with a link ", TextType.TEXT),
+            TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"),
+        ])
+
+    def test_no_links_passes_through(self):
+        node = TextNode("plain text no links", TextType.TEXT)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [node])
+
+    def test_non_text_node_passes_through(self):
+        node = TextNode("already bold", TextType.BOLD)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [node])
+
+    def test_does_not_match_images(self):
+        node = TextNode("![img](https://img.com/a.png)", TextType.TEXT)
+        result = split_nodes_link([node])
+        self.assertEqual(result, [node])
+
+    def test_empty_list(self):
+        self.assertEqual(split_nodes_link([]), [])
 
 
 if __name__ == "__main__":
