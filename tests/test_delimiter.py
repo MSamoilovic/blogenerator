@@ -1,7 +1,7 @@
 import unittest
 
 from nodes.textnode import TextNode, TextType
-from markdown.delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link
+from markdown.delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
 
 
 class TestSplitNodesDelimiter(unittest.TestCase):
@@ -258,6 +258,49 @@ class TestSplitNodesLink(unittest.TestCase):
 
     def test_empty_list(self):
         self.assertEqual(split_nodes_link([]), [])
+
+
+class TestTextToTextnodes(unittest.TestCase):
+
+    def test_full_example(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        result = text_to_textnodes(text)
+        self.assertEqual(result, [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ])
+
+    def test_plain_text(self):
+        result = text_to_textnodes("just plain text")
+        self.assertEqual(result, [TextNode("just plain text", TextType.TEXT)])
+
+    def test_only_bold(self):
+        result = text_to_textnodes("**bold**")
+        self.assertEqual(result, [TextNode("bold", TextType.BOLD)])
+
+    def test_only_image(self):
+        result = text_to_textnodes("![alt](https://example.com/img.png)")
+        self.assertEqual(result, [TextNode("alt", TextType.IMAGE, "https://example.com/img.png")])
+
+    def test_only_link(self):
+        result = text_to_textnodes("[click](https://example.com)")
+        self.assertEqual(result, [TextNode("click", TextType.LINK, "https://example.com")])
+
+    def test_bold_and_italic(self):
+        result = text_to_textnodes("**bold** and _italic_")
+        self.assertEqual(result, [
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+        ])
 
 
 if __name__ == "__main__":
