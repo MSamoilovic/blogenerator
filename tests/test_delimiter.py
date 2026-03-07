@@ -1,7 +1,7 @@
 import unittest
 
 from nodes.textnode import TextNode, TextType
-from markdown.delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
+from markdown.delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes, markdown_to_blocks
 
 
 class TestSplitNodesDelimiter(unittest.TestCase):
@@ -301,6 +301,38 @@ class TestTextToTextnodes(unittest.TestCase):
             TextNode(" and ", TextType.TEXT),
             TextNode("italic", TextType.ITALIC),
         ])
+
+
+class TestMarkdownToBlocks(unittest.TestCase):
+
+    def test_three_blocks(self):
+        markdown = "# This is a heading\n\nThis is a paragraph of text. It has some **bold** and _italic_ words inside of it.\n\n- This is the first list item in a list block\n- This is a list item\n- This is another list item"
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, [
+            "# This is a heading",
+            "This is a paragraph of text. It has some **bold** and _italic_ words inside of it.",
+            "- This is the first list item in a list block\n- This is a list item\n- This is another list item",
+        ])
+
+    def test_strips_whitespace(self):
+        result = markdown_to_blocks("  # Heading  \n\n  paragraph  ")
+        self.assertEqual(result, ["# Heading", "paragraph"])
+
+    def test_removes_empty_blocks(self):
+        result = markdown_to_blocks("first\n\n\n\nsecond")
+        self.assertEqual(result, ["first", "second"])
+
+    def test_single_block(self):
+        result = markdown_to_blocks("just one block")
+        self.assertEqual(result, ["just one block"])
+
+    def test_empty_string(self):
+        result = markdown_to_blocks("")
+        self.assertEqual(result, [])
+
+    def test_only_whitespace(self):
+        result = markdown_to_blocks("   \n\n   \n\n   ")
+        self.assertEqual(result, [])
 
 
 if __name__ == "__main__":
