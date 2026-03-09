@@ -48,6 +48,13 @@ def ordered_list_to_html_node(block):
     return ParentNode("ol", li_nodes)
 
 
+def extract_title(markdown):
+    for line in markdown.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    raise ValueError("No h1 header found in markdown")
+
+
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
     children = []
